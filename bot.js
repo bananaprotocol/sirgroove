@@ -80,7 +80,7 @@ client.on("message", function(message) {
         skipMusic(message);
         message.reply("your skip request has been accepted. The current song will be skipped!");
       } else {
-        message.reply("your skip request has been accepted. You need **" + Math.ceil((guilds[message.guild.id].voiceChannel.members.size - 1) / 2) - guilds[message.guild.id].skipReq) + "** more skip requests!";
+        message.reply("your skip request has been accepted. You need **" + (Math.ceil((guilds[message.guild.id].voiceChannel.members.size - 1) / 2) - guilds[message.guild.id].skipReq) + "** more skip requests!");
       }
     } else {
       message.reply("you already submitted a skip request.");
@@ -106,7 +106,7 @@ client.on("message", function(message) {
       message.reply("no music is playing!");
     }
 
-    message.reply("Stopping the music...");
+    message.reply("stopping the music...");
 
     guilds[message.guild.id].queue = [];
     guilds[message.guild.id].queueNames = [];
