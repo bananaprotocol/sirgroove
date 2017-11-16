@@ -15,15 +15,12 @@ const youtubeAPIKey = process.env.YOUTUBE_API_KEY;
 const botMaster = process.env.BOT_MASTER;
 const prefix = config.prefix;
 
-let queue = [];
-let isPlaying = false;
-let dispatcher = null;
-let voiceChannel = null;
-let skipReq = 0;
-let skippers = [];
+let guilds = {};
 
 client.on("ready", function () {
   console.log(`Logged in as ${client.user.username}#${client.user.discriminator}`);
+  clientUser = client.user;
+  clientUser.setGame("some sick tunes!");
 });
 
 client.on("message", function(message) {
@@ -31,48 +28,91 @@ client.on("message", function(message) {
   const msg = message.content.toLowerCase();
   const args = message.content.split(" ").slice(1).join(" ");
 
+  if (!guilds[message.guild.id]) {
+    guilds[message.guild.id] = {
+      queue: [],
+      queueNames: [],
+      isPlaying: false,
+      dispatcher: null,
+      voiceChannel: null,
+      skipReq: 0,
+      skippers: []
+    };
+  }
+
   if(message.author.equals(client.user) || message.author.bot) return;
 
   if(msg.startsWith(prefix + "play")) {
-    if (queue.length > 0 || isPlaying) {
-      getID(args, function (id) {
-        addToQueue(id);
-        youtubeInfo(id, function (err, videoinfo) {
-          if (err) {
-            throw new Error(err);
-          }
-          message.reply("the song: **" + videoinfo.title + "** has been added to the queue.");
+    if (member.voiceChannel || guilds[message.guild.id].voiceChannel != null) {
+      if (guilds[message.guild.id].queue.length > 0 || guilds[message.guild.id].isPlaying) {
+        getID(args, function (id) {
+          addToQueue(id, message);
+          youtubeInfo(id, function (err, videoinfo) {
+            if (err) {
+              throw new Error(err);
+            }
+            guilds[message.guild.id].queueNames.push(videoinfo.title);
+            message.reply("the song: **" + videoinfo.title + "** has been added to the queue.");
+          });
         });
-      });
+      } else {
+        guilds[message.guild.id].isPlaying = true;
+        getID(args, function(id) {
+          guilds[message.guild.id].queue.push(id);
+          playMusic(id, message);
+          youtubeInfo(id, function (err, videoinfo) {
+            if (err) {
+              throw new Error(err);
+            }
+            guilds[message.guild.id].queueNames.push(videoinfo.title);
+            message.reply("the song: **" + videoinfo.title + "** is now playing!");
+          });
+        });
+      }
     } else {
-      isPlaying = true;
-      getID(args, function(id) {
-        queue.push("Placeholder");
-        playMusic(id, message);
-        youtubeInfo(id, function (err, videoinfo) {
-          if (err) {
-            throw new Error(err);
-          }
-          message.reply("the song: **" + videoinfo.title + "** is now playing!");
-        });
-      });
+      message.reply("you have to be in a voice channel to play music!")
     }
-  }
-  else if (msg.startsWith(prefix + "skip")) {
-    if (skippers.indexOf(message.author.id) == -1) {
-      skippers.push(message.author.id);
-      skipReq++;
-      if (skipReq >= Math.ceil((voiceChannel.members.size - 1) / 2)) {
+  } else if (msg.startsWith(prefix + "skip")) {
+    if (guilds[message.guild.id].skippers.indexOf(message.author.id) === -1) {
+      guilds[message.guild.id].skippers.push(message.author.id);
+      guilds[message.guild.id].skipReq++;
+      if (guilds[message.guild.id].skipReq >= Math.ceil((guilds[message.guild.id].voiceChannel.members.size - 1) / 2)) {
         skipMusic(message);
         message.reply("your skip request has been accepted. The current song will be skipped!");
+      } else {
+        message.reply("your skip request has been accepted. You need **" + Math.ceil((guilds[message.guild.id].voiceChannel.members.size - 1) / 2) - guilds[message.guild.id].skipReq) + "** more skip requests!";
       }
-      else {
-        message.reply("your skip request has been accepted. You need **" + (Math.ceil((voiceChannel.members.size - 1) / 2) - skipReq) + "** more skip requests!");
-      }
-    }
-    else {
+    } else {
       message.reply("you already submitted a skip request.");
     }
+  } else if (msg.startsWith(prefix + "queue")) {
+    var codeblock = "```";
+    for (let i = 0; i < guilds[message.guild.id].queueNames.length; i++) {
+      let temp = (i + 1) + ". " + guilds[message.guild.id].queueNames[i] + (i === 0 ? " **(Current Song)**" : "") + "\n";
+      if ((codeblock + temp).length <= 2000 - 3) {
+        codeblock += temp;
+      } else {
+        codeblock += "```";
+        message.channel.send(codeblock);
+        codeblock = "```";
+      }
+    }
+
+    codeblock += "```";
+    message.channel.send(codeblock);
+  }
+  else if (msg.startsWith(prefix + "stop")) {
+    if (guilds[message.guild.id].isPlaying === false) {
+      message.reply("no music is playing!");
+    }
+
+    message.reply("Stopping the music...");
+
+    guilds[message.guild.id].queue = [];
+    guilds[message.guild.id].queueNames = [];
+    guilds[message.guild.id].isPlaying = false;
+    guilds[message.guild.id].dispatcher.end();
+    guilds[message.guild.id].voiceChannel.leave();
   }
 });
 
@@ -102,48 +142,45 @@ function getID(str, callback) {
   }
 }
 
-function addToQueue(strID) {
+function addToQueue(strID, message) {
   if (isYoutube(strID)) {
-    queue.push(getYoutubeID(strID));
+    guilds[message.guild.id].queue.push(getYoutubeID(strID));
   } else {
-    queue.push(strID);
+    guilds[message.guild.id].queue.push(strID);
   }
 }
 
 function playMusic(id, message) {
-  voiceChannel = message.member.voiceChannel;
+  guilds[message.guild.id].voiceChannel = message.member.voiceChannel;
 
-  voiceChannel.join().then(function(connection) {
+  guilds[message.guild.id].voiceChannel.join().then(function(connection) {
     stream = ytdl("https://www.youtube.com/watch?v=" + id, {
       filter: 'audioonly'
     });
-    skipReq = 0;
-    skippers = [];
+    guilds[message.guild.id].skipReq = 0;
+    guilds[message.guild.id].skippers = [];
 
-    dispatcher = connection.playStream(stream);
-    dispatcher.on("end", function () {
-      skipReq = 0;
-      skippers = [];
-      queue.shift();
-      if (queue.length === 0) {
-        queue = [];
-        isPlaying = false;
+    guilds[message.guild.id].dispatcher = connection.playStream(stream);
+    guilds[message.guild.id].dispatcher.on("end", function () {
+      guilds[message.guild.id].skipReq = 0;
+      guilds[message.guild.id].skippers = [];
+      guilds[message.guild.id].queue.shift();
+      guilds[message.guild.id].queueNames.shift();
+      if (guilds[message.guild.id].queue.length === 0) {
+        guilds[message.guild.id].queue = [];
+        guilds[message.guild.id].queueNames = [];
+        guilds[message.guild.id].isPlaying = false;
       } else {
-        playMusic(queue[0], message);
+        setTimeout(function () {
+          playMusic(guilds[message.guild.id].queue[0], message);
+        }, 500 );
       }
     });
   });
 }
 
 function skipMusic(message) {
-  dispatcher.end();
-  if (queue.length > 1) {
-    playMusic(queue[0], message);
-  }
-  else {
-    skipReq = 0;
-    skippers = [];
-  }
+  guilds[message.guild.id].dispatcher.end();
 }
 
 client.login(botToken);
