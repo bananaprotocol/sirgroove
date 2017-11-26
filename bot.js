@@ -69,9 +69,8 @@ client.on("message", function(message) {
           });
         });
       }
-    } else if (member.voiceChannel === false)
+    } else if (member.voiceChannel === false) {
       message.reply("you have to be in a voice channel to play music!")
-    {
     } else {
       message.reply("you have to be in a voice channel to play music!")
     }
