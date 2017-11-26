@@ -43,7 +43,7 @@ client.on("message", function(message) {
   if(message.author.equals(client.user) || message.author.bot) return;
 
   if(msg.startsWith(prefix + "play")) {
-    if (member.voiceChannel && guilds[message.guild.id].voiceChannel != null) {
+    if (member.voiceChannel || guilds[message.guild.id].voiceChannel != null) {
       if (guilds[message.guild.id].queue.length > 0 || guilds[message.guild.id].isPlaying) {
         getID(args, function (id) {
           addToQueue(id, message);
