@@ -10,17 +10,25 @@
 Make sure to have `git` and `node` installed.
 
 Clone the repo using
+
     git clone https://github.com/bananaprotocol/sirgroove
+
 Install all dependencies using
+
     npm install
+
 Make sure to have your bot token and YouTube API key set in .env
+
 ```
 BOT_TOKEN=mytoken
 YOUTUBE_API_KEY=myapikey
 ```
 Start the bot using
+
     npm start
+
 You can keep the bot up to date by using
+
     git pull && npm install
 
 ## Contributing
