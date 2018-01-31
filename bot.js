@@ -107,6 +107,10 @@ function skipSong (message) {
 }
 
 function showQueue (message) {
+  if (guilds[message.guild.id].queue.length === 0) {
+    message.channel.send('```There are no more songs in the queue. !play to add a song.```')
+    return
+  }
   let codeBlock = '```'
   for (let i = 0; i < guilds[message.guild.id].queueNames.length; i++) {
     let temp = (i + 1) + '. ' + guilds[message.guild.id].queueNames[i] + (i === 0 ? ' **(Current Song)**' : '') + '\n'
