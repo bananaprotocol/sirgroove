@@ -151,13 +151,13 @@ function dequeue (message, args) {
     message.reply('In order to remove a song from the queue, please, give a valid song number from the !queue list. !dequeue [number]')
     return
   }
-
+  let returnMessage = ''
   for (var i = 0; i < args.length; i++) {
     let index = parseInt(args[i])
     if (index === 0) {
       index = 1
     }
-    message.reply('Removed song at index: ' + index + ' ' + guilds[message.guild.id].queueNames[index - 1])
+    returnMessage += 'Removed song at index: ' + index + ' ' + guilds[message.guild.id].queueNames[index - 1] + '\n'
     if (index === 1) {
       skipMusic(message)
     } else {
@@ -165,6 +165,7 @@ function dequeue (message, args) {
       guilds[message.guild.id].queueNames.splice(index - 1, 1)
     }
   }
+  message.reply(returnMessage)
   showQueue(message)
 }
 
