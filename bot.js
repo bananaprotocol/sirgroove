@@ -138,23 +138,23 @@ function stopAllSongs (message) {
 }
 
 function dequeue (message, args) {
-  // here we ill dequeueeueueueue a song.
-  showQueue(message) 
-  args = args.split(' ').map(Number) // splitted args
-  args.sort((a,b) => {return b - a})
-  if(!validateIndexes(args, guilds[message.guild.id].queue.length)){
-    message.reply("In order to remove a song from the queue, please, give a valid song number from the !queue list. !dequeue [number]")
+  // here we will dequeueeueueueue a song.
+  showQueue(message)
+  args = args.split(' ').map(Number) // split args
+  args.sort((a, b) => { return b - a })
+  if (!validateIndexes(args, guilds[message.guild.id].queue.length)) {
+    message.reply('In order to remove a song from the queue, please, give a valid song number from the !queue list. !dequeue [number]')
     return
   }
 
-  for(var i = 0; i < args.length; i++){
+  for (var i = 0; i < args.length; i++) {
     let index = parseInt(args[i])
-    if (index === 0){
+    if (index === 0) {
       index = 1
     }
     message.reply('Removed song at index: ' + index + ' ' + guilds[message.guild.id].queueNames[index - 1])
-    if(index === 1){
-      skipMusic(message);
+    if (index === 1) {
+      skipMusic(message)
     } else {
       guilds[message.guild.id].queue.splice(index - 1, 1)
       guilds[message.guild.id].queueNames.splice(index - 1, 1)
@@ -164,8 +164,8 @@ function dequeue (message, args) {
 }
 
 // if indexes contain any non-numeric symbol, this function will return false
-function validateIndexes(indexes, queueLength){
-  for(var i = 0; i < indexes.length; i++){
+function validateIndexes (indexes, queueLength) {
+  for (var i = 0; i < indexes.length; i++) {
     if (isNaN(indexes[i])) return false
     if (indexes[i] < 0 || indexes[i] > queueLength) return false
     if (indexes[i] === 0 && queueLength === 0) return false
