@@ -139,20 +139,23 @@ function stopAllSongs (message) {
 
 function dequeue (message, args) {
   // here we ill dequeueeueueueue a song.
-  console.log(args[0])
+  args = args.split(' ') // splitted args
+  console.log(args)
   showQueue(message) 
-  if (isNaN(args[0]) || args[0] === undefined) {
+  let index = parseInt(args[0])
+
+  console.log(index)
+  if (isNaN(index) || index === undefined) {
     message.reply("In order to remove a song from the queue, please, give a song number from the !queue list. !dequeue [number]")
     return
   }
   // if argument contains number
-  let index = parseInt(args[0])
   if (index < 0 || index > guilds[message.guild.id].queue.length) {
     message.reply("In order to remove a song from the queue, please, give a valid song number from the !queue list. !dequeue [number]")
     return
   }
   if (index === 0){
-    args[0] = 1
+    index = 1
   }
   message.reply('Removed song at index: ' + index + ' ' + guilds[message.guild.id].queueNames[index - 1])
   guilds[message.guild.id].queue.splice(index - 1, 1)
