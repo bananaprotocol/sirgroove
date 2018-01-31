@@ -242,6 +242,9 @@ function playMusic (id, message) {
 }
 
 function skipMusic (message) {
+  if (guilds[message.guild.id].isPlaying === false || guilds[message.guild.id].dispatcher === null) {
+    return
+  }
   guilds[message.guild.id].dispatcher.end()
 }
 
