@@ -94,7 +94,8 @@ function skipSong (message) {
   if (guilds[message.guild.id].skippers.indexOf(message.author.id) === -1) {
     guilds[message.guild.id].skippers.push(message.author.id)
     guilds[message.guild.id].skipReq++
-    if (guilds[message.guild.id].skipReq >= Math.ceil((guilds[message.guild.id].voiceChannel.members.size - 1) / 2)) {
+    if (guilds[message.guild.id].skipReq >= Math.ceil((guilds[message.guild.id].voiceChannel.members.size - 1) / 2) ||
+        message.author.roles.find('name', 'N3K Team')) { // N3K Team can skip without votes.
       skipMusic(message)
       message.reply('your skip request has been accepted. The current song will be skipped!')
     } else {
