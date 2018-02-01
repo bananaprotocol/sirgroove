@@ -94,7 +94,8 @@ function skipSong (message) {
   if (guilds[message.guild.id].skippers.indexOf(message.author.id) === -1) {
     guilds[message.guild.id].skippers.push(message.author.id)
     guilds[message.guild.id].skipReq++
-    if (guilds[message.guild.id].skipReq >= Math.ceil((guilds[message.guild.id].voiceChannel.members.size - 1) / 2)) {
+    if (guilds[message.guild.id].skipReq >= Math.ceil((guilds[message.guild.id].voiceChannel.members.size - 1) / 2) ||
+        message.author.roles.find('name', 'N3K Team')) { // N3K Team can skip without votes.
       skipMusic(message)
       message.reply('your skip request has been accepted. The current song will be skipped!')
     } else {
@@ -106,6 +107,10 @@ function skipSong (message) {
 }
 
 function showQueue (message) {
+  if (guilds[message.guild.id].queue.length === 0) {
+    message.channel.send('```There are no more songs in the queue. !play to add a song.```')
+    return
+  }
   let codeBlock = '```'
   for (let i = 0; i < guilds[message.guild.id].queueNames.length; i++) {
     let temp = (i + 1) + '. ' + guilds[message.guild.id].queueNames[i] + (i === 0 ? ' **(Current Song)**' : '') + '\n'
@@ -138,34 +143,35 @@ function stopAllSongs (message) {
 }
 
 function dequeue (message, args) {
-  // here we ill dequeueeueueueue a song.
-  showQueue(message) 
-  args = args.split(' ').map(Number) // splitted args
-  args.sort((a,b) => {return b - a})
-  if(!validateIndexes(args, guilds[message.guild.id].queue.length)){
-    message.reply("In order to remove a song from the queue, please, give a valid song number from the !queue list. !dequeue [number]")
+  // here we will dequeueeueueueue a song.
+  showQueue(message)
+  args = args.split(' ').map(Number) // split args
+  args.sort((a, b) => { return b - a })
+  if (!validateIndexes(args, guilds[message.guild.id].queue.length)) {
+    message.reply('In order to remove a song from the queue, please, give a valid song number from the !queue list. !dequeue [number]')
     return
   }
-
-  for(var i = 0; i < args.length; i++){
+  let returnMessage = ''
+  for (var i = 0; i < args.length; i++) {
     let index = parseInt(args[i])
-    if (index === 0){
+    if (index === 0) {
       index = 1
     }
-    message.reply('Removed song at index: ' + index + ' ' + guilds[message.guild.id].queueNames[index - 1])
-    if(index === 1){
-      skipMusic(message);
+    returnMessage += 'Removed song at index: ' + index + ' ' + guilds[message.guild.id].queueNames[index - 1] + '\n'
+    if (index === 1) {
+      skipMusic(message)
     } else {
       guilds[message.guild.id].queue.splice(index - 1, 1)
       guilds[message.guild.id].queueNames.splice(index - 1, 1)
     }
   }
+  message.reply(returnMessage)
   showQueue(message)
 }
 
 // if indexes contain any non-numeric symbol, this function will return false
-function validateIndexes(indexes, queueLength){
-  for(var i = 0; i < indexes.length; i++){
+function validateIndexes (indexes, queueLength) {
+  for (var i = 0; i < indexes.length; i++) {
     if (isNaN(indexes[i])) return false
     if (indexes[i] < 0 || indexes[i] > queueLength) return false
     if (indexes[i] === 0 && queueLength === 0) return false
@@ -236,6 +242,9 @@ function playMusic (id, message) {
 }
 
 function skipMusic (message) {
+  if (guilds[message.guild.id].isPlaying === false || guilds[message.guild.id].dispatcher === null) {
+    return
+  }
   guilds[message.guild.id].dispatcher.end()
 }
 
