@@ -129,12 +129,12 @@ function showQueue (message) {
 
 function stopAllSongs (message) {
   if (guilds[message.guild.id].isPlaying === false || guilds[message.guild.id].dispatcher === null) {
-    message.reply('no music is playing!')
-    return
+    message.reply('leaving the channel bye bye...')
   }
+  else{
   client.user.setActivity('too quiet in here...')
   message.reply('stopping the music...')
-
+  }
   guilds[message.guild.id].queue = []
   guilds[message.guild.id].queueNames = []
   guilds[message.guild.id].isPlaying = false
