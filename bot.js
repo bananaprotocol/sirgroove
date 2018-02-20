@@ -95,7 +95,7 @@ function skipSong (message) {
     guilds[message.guild.id].skippers.push(message.author.id)
     guilds[message.guild.id].skipReq++
     if (guilds[message.guild.id].skipReq >= Math.ceil((guilds[message.guild.id].voiceChannel.members.size - 1) / 2) ||
-        message.author.roles.find('name', 'N3K Team')) { // N3K Team can skip without votes.
+        message.author.roles.find('name', 'DJ')) { // "DJ" role can skip without votes.
       skipMusic(message)
       message.reply('your skip request has been accepted. The current song will be skipped!')
     } else {
@@ -129,12 +129,12 @@ function showQueue (message) {
 
 function stopAllSongs (message) {
   if (guilds[message.guild.id].isPlaying === false || guilds[message.guild.id].dispatcher === null) {
-    message.reply('no music is playing!')
-    return
+    message.reply('leaving the channel bye bye...')
   }
+  else{
   client.user.setActivity('too quiet in here...')
   message.reply('stopping the music...')
-
+  }
   guilds[message.guild.id].queue = []
   guilds[message.guild.id].queueNames = []
   guilds[message.guild.id].isPlaying = false
