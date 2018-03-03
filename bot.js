@@ -20,7 +20,7 @@ let guilds = {};
 client.on("ready", function () {
   console.log(`Logged in as ${client.user.username}#${client.user.discriminator}`);
   clientUser = client.user;
-  clientUser.setGame("some sick tunes!");
+  clientUser.setActivity("some sick Tunes!", {type: "PLAYING"});
 });
 
 client.on("message", function(message) {
