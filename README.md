@@ -7,7 +7,7 @@
 [Discord Invite Link](https://discordapp.com/oauth2/authorize?client_id=380083023225421825&scope=bot)
 
 ### Self hosted
-Make sure to have `git` and `node` installed.
+Make sure to have `git`, `node` and `ffmpeg` installed.
 
 Clone the repo using
 
