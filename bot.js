@@ -144,7 +144,6 @@ function stopAllSongs (message) {
 
 function dequeue (message, args) {
   // here we will dequeueeueueueue a song.
-  showQueue(message)
   args = args.split(' ').map(Number) // split args
   args.sort((a, b) => { return b - a })
   if (!validateIndexes(args, guilds[message.guild.id].queue.length)) {
@@ -166,7 +165,6 @@ function dequeue (message, args) {
     }
   }
   message.reply(returnMessage)
-  showQueue(message)
 }
 
 // if indexes contain any non-numeric symbol, this function will return false
