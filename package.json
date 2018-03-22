@@ -24,7 +24,7 @@
     "fs": "0.0.1-security",
     "get-youtube-id": "^1.0.0",
     "node-opus": "^0.2.7",
-    "request": "^2.83.0",
+    "request": "^2.85.0",
     "youtube-info": "^1.2.0",
     "ytdl-core": "^0.20.2"
   }
