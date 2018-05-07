@@ -1,6 +1,6 @@
 {
   "name": "sirgroove",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "Music bot for Discord",
   "main": "bot.js",
   "scripts": {
@@ -23,7 +23,7 @@
     "ffmpeg-binaries": "^3.2.2-3",
     "fs": "0.0.1-security",
     "get-youtube-id": "^1.0.0",
-    "node-opus": "^0.2.7",
+    "node-opus": "^0.3.0",
     "request": "^2.85.0",
     "youtube-info": "^1.2.0",
     "ytdl-core": "^0.20.2"
