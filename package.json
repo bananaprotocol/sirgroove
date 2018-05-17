@@ -1,6 +1,6 @@
 {
   "name": "sirgroove",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Music bot for Discord",
   "main": "bot.js",
   "scripts": {
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@heroku.com:sirgroove.git"
+    "url": "git+https://github.com/bananaprotocol/sirgroove.git"
   },
   "keywords": [
     "discord",
