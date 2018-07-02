@@ -19,7 +19,7 @@
   "license": "MIT",
   "dependencies": {
     "discord.js": "^11.3.2",
-    "dotenv": "^5.0.1",
+    "dotenv": "^6.0.0",
     "ffmpeg-binaries": "^3.2.2-3",
     "fs": "0.0.1-security",
     "get-youtube-id": "^1.0.0",
