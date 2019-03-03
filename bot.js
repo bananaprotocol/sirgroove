@@ -16,6 +16,7 @@ const botMaster = process.env.BOT_MASTER;
 const prefix = config.prefix;
 
 let guilds = {};
+let playedTracks = [];
 
 client.on('ready', function () {
   console.log(`Logged in as ${client.user.username}#${client.user.discriminator}`);
@@ -51,8 +52,8 @@ client.on('message', function (message) {
             if (err) {
               throw new Error(err);
             }
-
             guilds[message.guild.id].queueNames.push(videoinfo.title);
+            addToPlayedTracks(videoinfo);
             message.reply('the song: **' + videoinfo.title + '** has been added to the queue.');
           });
         });
@@ -65,8 +66,8 @@ client.on('message', function (message) {
             if (err) {
               throw new Error(err);
             }
-
             guilds[message.guild.id].queueNames.push(videoinfo.title);
+            addToPlayedTracks(videoinfo);
             message.reply('the song: **' + videoinfo.title + '** is now playing!');
           });
         });
@@ -120,6 +121,16 @@ client.on('message', function (message) {
     guilds[message.guild.id].isPlaying = false;
     guilds[message.guild.id].dispatcher.end();
     guilds[message.guild.id].voiceChannel.leave();
+  } else if (msg.startsWith(prefix + 'history')){
+    let defaultTrackCount = 30;
+    console.log(tryParseInt(args, defaultTrackCount))
+    let historyTxt = getPlayedTracksText(tryParseInt(args, defaultTrackCount));
+    console.log(historyTxt);
+    let historyMsgs = splitTextByLines(historyTxt);
+    for (let i = 0; i < historyMsgs.length; i++){
+      console.log(historyMsgs[i])
+      message.reply(historyMsgs[i]);
+    }
   }
 });
 
@@ -189,6 +200,91 @@ function playMusic(id, message) {
 
 function skipMusic(message) {
   guilds[message.guild.id].dispatcher.end();
+}
+
+function addToPlayedTracks(videoInfo){
+  let trackInfo = {
+    title: videoInfo.title, 
+    url: videoInfo.url, 
+    dateVal: Date.now()
+  };
+  playedTracks.push(trackInfo);
+  if (playedTracks.length > 100){
+    playedTracks.shift();
+  }
+}
+
+function getUTCDateMS(){
+  let date = new Date(); 
+  let now_utc =  Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(),
+  date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds());
+  return now_utc;
+}
+
+function getPlayedTracksText(trackCount){
+  if (trackCount == undefined){
+    trackCount = playedTracks.length;
+  }
+  const startIndex = trackCount >= playedTracks.length ? 0 : playedTracks.length - trackCount;
+  let tracksText = '';
+  for (let i = startIndex; i < playedTracks.length; i++){
+    const trackNum = i - startIndex + 1;
+    tracksText += `${trackNum}: ${playedTracks[i].title} (Link: <${playedTracks[i].url}>)\n`; //played at ${(new Date(playedTracks[i].dateVal)).toTimeString()} UTC\n`;
+  }
+  return tracksText.trim();
+}
+
+function splitTextByLines(text, maxCharsPerText){
+  if (text == undefined || text.length == 0){
+    return [];
+  }
+  if (maxCharsPerText == undefined){
+    maxCharsPerText = 2000;
+  }
+  const lines = text.split('\n');
+  let messages = [''];
+  let charCount = 0;
+  let messageIndex = 0;
+  for (let i = 0; i < lines.length; i++){
+    const line = lines[i] + '\n';
+    charCount += line.length;
+    if (charCount <= maxCharsPerText){
+      messages[messageIndex] += line;
+    } else {
+      let lineTextRemaining = line;
+      while (charCount > maxCharsPerText){
+        let currentLineText = lineTextRemaining.substr(0, maxCharsPerText);
+        messages.push(currentLineText);
+        messageIndex++;
+        charCount -= maxCharsPerText;
+        if (charCount > 0){
+          let startSplitIndex = maxCharsPerText <= lineTextRemaining.length ? maxCharsPerText : lineTextRemaining.length - 1;
+          lineTextRemaining = lineTextRemaining.substring(startSplitIndex, lineTextRemaining.length);
+        } else {
+          charCount = 0
+        }
+      }
+    }
+  }
+  for (let i = 0; i < messages.length; i++){
+    messages[i] = messages[i].trim();
+  }
+  return messages;
+}
+
+function tryParseInt(arg, defaultVal){
+  if (defaultVal == undefined){
+    defaultVal = 0;
+  }
+  try {
+    let argNum = parseInt(arg.split(' ')[0]);
+    if (!isNaN(argNum)){
+      return argNum;
+    }
+    return defaultVal;
+  } catch (parseException){
+    return defaultVal;
+  }
 }
 
 client.login(botToken);
