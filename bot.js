@@ -53,7 +53,7 @@ client.on('message', function (message) {
               throw new Error(err);
             }
             guilds[message.guild.id].queueNames.push(videoinfo.title);
-            addToPlayedTracks(videoinfo);
+            addToPlayedTracks(videoinfo, message.author);
             message.reply('the song: **' + videoinfo.title + '** has been added to the queue.');
           });
         });
@@ -67,7 +67,7 @@ client.on('message', function (message) {
               throw new Error(err);
             }
             guilds[message.guild.id].queueNames.push(videoinfo.title);
-            addToPlayedTracks(videoinfo);
+            addToPlayedTracks(videoinfo, message.author);
             message.reply('the song: **' + videoinfo.title + '** is now playing!');
           });
         });
@@ -123,12 +123,12 @@ client.on('message', function (message) {
     guilds[message.guild.id].voiceChannel.leave();
   } else if (msg.startsWith(prefix + 'history')){
     let defaultTrackCount = 30;
-    console.log(tryParseInt(args, defaultTrackCount))
-    let historyTxt = getPlayedTracksText(tryParseInt(args, defaultTrackCount));
-    console.log(historyTxt);
+    argArr = args.split(' ');
+    let includeUsers = argArr.some(val => val != null && val.toLowerCase().indexOf('user') >= 0);
+    let includeTimes = argArr.some(val => val != null && val.toLowerCase().indexOf('time') >= 0);
+    let historyTxt = getPlayedTracksText(tryParseInt(args, defaultTrackCount), includeUsers, includeTimes);
     let historyMsgs = splitTextByLines(historyTxt);
     for (let i = 0; i < historyMsgs.length; i++){
-      console.log(historyMsgs[i])
       message.reply(historyMsgs[i]);
     }
   }
@@ -202,11 +202,12 @@ function skipMusic(message) {
   guilds[message.guild.id].dispatcher.end();
 }
 
-function addToPlayedTracks(videoInfo){
+function addToPlayedTracks(videoInfo, user){
   let trackInfo = {
     title: videoInfo.title, 
     url: videoInfo.url, 
-    dateVal: Date.now()
+    dateVal: Date.now(), 
+    username: user.username
   };
   playedTracks.push(trackInfo);
   if (playedTracks.length > 100){
@@ -214,14 +215,7 @@ function addToPlayedTracks(videoInfo){
   }
 }
 
-function getUTCDateMS(){
-  let date = new Date(); 
-  let now_utc =  Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(),
-  date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds());
-  return now_utc;
-}
-
-function getPlayedTracksText(trackCount){
+function getPlayedTracksText(trackCount, includeUsers, includeTimes){
   if (trackCount == undefined){
     trackCount = playedTracks.length;
   }
@@ -229,7 +223,7 @@ function getPlayedTracksText(trackCount){
   let tracksText = '';
   for (let i = startIndex; i < playedTracks.length; i++){
     const trackNum = i - startIndex + 1;
-    tracksText += `${trackNum}: ${playedTracks[i].title} (Link: <${playedTracks[i].url}>)\n`; //played at ${(new Date(playedTracks[i].dateVal)).toTimeString()} UTC\n`;
+    tracksText += `${trackNum}: ${playedTracks[i].title} (<${playedTracks[i].url}>)${(includeUsers ? ' by ' + playedTracks[i].username : '')}${(includeTimes ? ' at ' + formatDate(playedTracks[i].dateVal) : '')}\n`;
   }
   return tracksText.trim();
 }
@@ -277,7 +271,7 @@ function tryParseInt(arg, defaultVal){
     defaultVal = 0;
   }
   try {
-    let argNum = parseInt(arg.split(' ')[0]);
+    let argNum = parseInt(arg);
     if (!isNaN(argNum)){
       return argNum;
     }
@@ -285,6 +279,16 @@ function tryParseInt(arg, defaultVal){
   } catch (parseException){
     return defaultVal;
   }
+}
+
+//YYYY-MM-DD hh:mm:ss UTC
+function formatDate(dateValue){
+  const date = new Date(dateValue);
+  return `${date.getUTCFullYear()}-${padTo2DigitInt(date.getUTCMonth() + 1)}-${padTo2DigitInt(date.getUTCDate())} ${padTo2DigitInt(date.getUTCHours())}:${padTo2DigitInt(date.getUTCMinutes())}:${padTo2DigitInt(date.getUTCSeconds())} UTC`;
+}
+
+function padTo2DigitInt(intValue){
+  return intValue > 9 ? '' + intValue: '0' + intValue;
 }
 
 client.login(botToken);
