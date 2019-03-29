@@ -16,7 +16,6 @@ const botMaster = process.env.BOT_MASTER;
 const prefix = config.prefix;
 
 let guilds = {};
-let playedTracks = [];
 
 client.on('ready', function () {
   console.log(`Logged in as ${client.user.username}#${client.user.discriminator}`);
@@ -37,7 +36,8 @@ client.on('message', function (message) {
       dispatcher: null,
       voiceChannel: null,
       skipReq: 0,
-      skippers: [],
+      skippers: [], 
+      playedTracks: []
     };
   }
 
@@ -53,7 +53,7 @@ client.on('message', function (message) {
               throw new Error(err);
             }
             guilds[message.guild.id].queueNames.push(videoinfo.title);
-            addToPlayedTracks(videoinfo, message.author);
+            addToPlayedTracks(message, videoinfo, message.author);
             message.reply('the song: **' + videoinfo.title + '** has been added to the queue.');
           });
         });
@@ -67,7 +67,7 @@ client.on('message', function (message) {
               throw new Error(err);
             }
             guilds[message.guild.id].queueNames.push(videoinfo.title);
-            addToPlayedTracks(videoinfo, message.author);
+            addToPlayedTracks(message, videoinfo, message.author);
             message.reply('the song: **' + videoinfo.title + '** is now playing!');
           });
         });
@@ -126,7 +126,7 @@ client.on('message', function (message) {
     argArr = args.split(' ');
     let includeUsers = argArr.some(val => val != null && val.toLowerCase().indexOf('user') >= 0);
     let includeTimes = argArr.some(val => val != null && val.toLowerCase().indexOf('time') >= 0);
-    let historyTxt = getPlayedTracksText(tryParseInt(args, defaultTrackCount), includeUsers, includeTimes);
+    let historyTxt = getPlayedTracksText(message, tryParseInt(args, defaultTrackCount), includeUsers, includeTimes);
     let historyMsgs = splitTextByLines(historyTxt);
     for (let i = 0; i < historyMsgs.length; i++){
       message.reply(historyMsgs[i]);
@@ -202,20 +202,21 @@ function skipMusic(message) {
   guilds[message.guild.id].dispatcher.end();
 }
 
-function addToPlayedTracks(videoInfo, user){
+function addToPlayedTracks(message, videoInfo, user){
   let trackInfo = {
     title: videoInfo.title, 
     url: videoInfo.url, 
     dateVal: Date.now(), 
     username: user.username
   };
-  playedTracks.push(trackInfo);
-  if (playedTracks.length > 100){
-    playedTracks.shift();
+  guilds[message.guild.id].playedTracks.push(trackInfo);
+  if (guilds[message.guild.id].playedTracks.length > 100){
+    guilds[message.guild.id].playedTracks.shift();
   }
 }
 
-function getPlayedTracksText(trackCount, includeUsers, includeTimes){
+function getPlayedTracksText(message, trackCount, includeUsers, includeTimes){
+  const playedTracks = guilds[message.guild.id].playedTracks;
   if (trackCount == undefined){
     trackCount = playedTracks.length;
   }
