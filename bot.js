@@ -36,7 +36,8 @@ client.on('message', function (message) {
       dispatcher: null,
       voiceChannel: null,
       skipReq: 0,
-      skippers: [],
+      skippers: [], 
+      playedTracks: []
     };
   }
 
@@ -51,8 +52,8 @@ client.on('message', function (message) {
             if (err) {
               throw new Error(err);
             }
-
             guilds[message.guild.id].queueNames.push(videoinfo.title);
+            addToPlayedTracks(message, videoinfo, message.author);
             message.reply('the song: **' + videoinfo.title + '** has been added to the queue.');
           });
         });
@@ -65,8 +66,8 @@ client.on('message', function (message) {
             if (err) {
               throw new Error(err);
             }
-
             guilds[message.guild.id].queueNames.push(videoinfo.title);
+            addToPlayedTracks(message, videoinfo, message.author);
             message.reply('the song: **' + videoinfo.title + '** is now playing!');
           });
         });
@@ -120,6 +121,16 @@ client.on('message', function (message) {
     guilds[message.guild.id].isPlaying = false;
     guilds[message.guild.id].dispatcher.end();
     guilds[message.guild.id].voiceChannel.leave();
+  } else if (msg.startsWith(prefix + 'history')){
+    let defaultTrackCount = 30;
+    argArr = args.split(' ');
+    let includeUsers = argArr.some(val => val != null && val.toLowerCase().indexOf('user') >= 0);
+    let includeTimes = argArr.some(val => val != null && val.toLowerCase().indexOf('time') >= 0);
+    let historyTxt = getPlayedTracksText(message, tryParseInt(args, defaultTrackCount), includeUsers, includeTimes);
+    let historyMsgs = splitTextByLines(historyTxt);
+    for (let i = 0; i < historyMsgs.length; i++){
+      message.reply(historyMsgs[i]);
+    }
   }
 });
 
@@ -189,6 +200,96 @@ function playMusic(id, message) {
 
 function skipMusic(message) {
   guilds[message.guild.id].dispatcher.end();
+}
+
+function addToPlayedTracks(message, videoInfo, user){
+  let trackInfo = {
+    title: videoInfo.title, 
+    url: videoInfo.url, 
+    dateVal: Date.now(), 
+    username: user.username
+  };
+  guilds[message.guild.id].playedTracks.push(trackInfo);
+  if (guilds[message.guild.id].playedTracks.length > 100){
+    guilds[message.guild.id].playedTracks.shift();
+  }
+}
+
+function getPlayedTracksText(message, trackCount, includeUsers, includeTimes){
+  const playedTracks = guilds[message.guild.id].playedTracks;
+  if (trackCount == undefined){
+    trackCount = playedTracks.length;
+  }
+  const startIndex = trackCount >= playedTracks.length ? 0 : playedTracks.length - trackCount;
+  let tracksText = '';
+  for (let i = startIndex; i < playedTracks.length; i++){
+    const trackNum = i - startIndex + 1;
+    tracksText += `${trackNum}: ${playedTracks[i].title} (<${playedTracks[i].url}>)${(includeUsers ? ' by ' + playedTracks[i].username : '')}${(includeTimes ? ' at ' + formatDate(playedTracks[i].dateVal) : '')}\n`;
+  }
+  return tracksText.trim();
+}
+
+function splitTextByLines(text, maxCharsPerText){
+  if (text == undefined || text.length == 0){
+    return [];
+  }
+  if (maxCharsPerText == undefined){
+    maxCharsPerText = 2000;
+  }
+  const lines = text.split('\n');
+  let messages = [''];
+  let charCount = 0;
+  let messageIndex = 0;
+  for (let i = 0; i < lines.length; i++){
+    const line = lines[i] + '\n';
+    charCount += line.length;
+    if (charCount <= maxCharsPerText){
+      messages[messageIndex] += line;
+    } else {
+      let lineTextRemaining = line;
+      while (charCount > maxCharsPerText){
+        let currentLineText = lineTextRemaining.substr(0, maxCharsPerText);
+        messages.push(currentLineText);
+        messageIndex++;
+        charCount -= maxCharsPerText;
+        if (charCount > 0){
+          let startSplitIndex = maxCharsPerText <= lineTextRemaining.length ? maxCharsPerText : lineTextRemaining.length - 1;
+          lineTextRemaining = lineTextRemaining.substring(startSplitIndex, lineTextRemaining.length);
+        } else {
+          charCount = 0
+        }
+      }
+    }
+  }
+  for (let i = 0; i < messages.length; i++){
+    messages[i] = messages[i].trim();
+  }
+  return messages;
+}
+
+function tryParseInt(arg, defaultVal){
+  if (defaultVal == undefined){
+    defaultVal = 0;
+  }
+  try {
+    let argNum = parseInt(arg);
+    if (!isNaN(argNum)){
+      return argNum;
+    }
+    return defaultVal;
+  } catch (parseException){
+    return defaultVal;
+  }
+}
+
+//YYYY-MM-DD hh:mm:ss UTC
+function formatDate(dateValue){
+  const date = new Date(dateValue);
+  return `${date.getUTCFullYear()}-${padTo2DigitInt(date.getUTCMonth() + 1)}-${padTo2DigitInt(date.getUTCDate())} ${padTo2DigitInt(date.getUTCHours())}:${padTo2DigitInt(date.getUTCMinutes())}:${padTo2DigitInt(date.getUTCSeconds())} UTC`;
+}
+
+function padTo2DigitInt(intValue){
+  return intValue > 9 ? '' + intValue: '0' + intValue;
 }
 
 client.login(botToken);
