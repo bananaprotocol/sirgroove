@@ -1,6 +1,6 @@
 {
   "name": "sirgroove",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Music bot for Discord",
   "main": "bot.js",
   "scripts": {
