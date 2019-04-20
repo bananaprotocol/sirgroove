@@ -14,6 +14,7 @@ const botToken = process.env.BOT_TOKEN;
 const youtubeAPIKey = process.env.YOUTUBE_API_KEY;
 const botMaster = process.env.BOT_MASTER;
 const prefix = config.prefix;
+const role = config.role;
 
 let guilds = {};
 
@@ -112,15 +113,32 @@ client.on('message', function (message) {
   } else if (msg.startsWith(prefix + 'stop')) {
     if (guilds[message.guild.id].isPlaying === false) {
       message.reply('no music is playing!');
+      return;
     }
 
-    message.reply('stopping the music...');
+    let canStop = false;
 
-    guilds[message.guild.id].queue = [];
-    guilds[message.guild.id].queueNames = [];
-    guilds[message.guild.id].isPlaying = false;
-    guilds[message.guild.id].dispatcher.end();
-    guilds[message.guild.id].voiceChannel.leave();
+    let roles = message.guild.member(message.author.id).roles.array();
+    for (let i = 0; i < roles.length; i++) {
+      if (role === roles[i].name) {
+        canStop = true;
+        break;
+      }
+    }
+
+    if (canStop) {
+      message.reply('stopping the music...');
+
+      guilds[message.guild.id].queue = [];
+      guilds[message.guild.id].queueNames = [];
+      guilds[message.guild.id].isPlaying = false;
+      guilds[message.guild.id].dispatcher.end();
+      guilds[message.guild.id].voiceChannel.leave();
+    } else {
+      message.reply("Nice try, but only " + role + "s can stop me!");
+      return;
+    }
+
   } else if (msg.startsWith(prefix + 'history')){
     let defaultTrackCount = 30;
     argArr = args.split(' ');
