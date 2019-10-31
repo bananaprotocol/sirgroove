@@ -5,8 +5,7 @@ const request = require('request');
 const fs = require('fs');
 const getYoutubeID = require('get-youtube-id');
 const youtubeInfo = require('youtube-info');
-const dotenv = require('dotenv');
-dotenv.load();
+require('dotenv').config();
 
 let config = require('./settings.json');
 
