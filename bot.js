@@ -44,7 +44,7 @@ client.on('message', function (message) {
   if (message.author.equals(client.user) || message.author.bot) return;
 
   if (msg.startsWith(prefix + 'play')) {
-    if (member.voiceChannel || guilds[message.guild.id].voiceChannel != null) {
+    if (member.voice.channel || guilds[message.guild.id].voiceChannel != null) {
       if (guilds[message.guild.id].queue.length > 0 || guilds[message.guild.id].isPlaying) {
         getID(args, function (id) {
           addToQueue(id, message);
@@ -72,7 +72,7 @@ client.on('message', function (message) {
           });
         });
       }
-    } else if (member.voiceChannel === false) {
+    } else if (member.voice.channel === false) {
       message.reply('you have to be in a voice channel to play music!');
     } else {
       message.reply('you have to be in a voice channel to play music!');
@@ -176,7 +176,7 @@ function addToQueue(strID, message) {
 }
 
 function playMusic(id, message) {
-  guilds[message.guild.id].voiceChannel = message.member.voiceChannel;
+  guilds[message.guild.id].voiceChannel = message.member.voice.channel;
 
   guilds[message.guild.id].voiceChannel.join().then(function (connection) {
     stream = ytdl('https://www.youtube.com/watch?v=' + id, {
@@ -185,7 +185,7 @@ function playMusic(id, message) {
     guilds[message.guild.id].skipReq = 0;
     guilds[message.guild.id].skippers = [];
 
-    guilds[message.guild.id].dispatcher = connection.playStream(stream);
+    guilds[message.guild.id].dispatcher = connection.play(stream);
     guilds[message.guild.id].dispatcher.on('end', function () {
       guilds[message.guild.id].skipReq = 0;
       guilds[message.guild.id].skippers = [];
