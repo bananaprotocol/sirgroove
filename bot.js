@@ -3,8 +3,6 @@ const client = new Discord.Client();
 const ytdl = require('ytdl-core');
 const request = require('request');
 const fs = require('fs');
-const getYoutubeID = require('get-youtube-id');
-const youtubeInfo = require('youtube-info');
 require('dotenv').config();
 
 let config = require('./settings.json');
@@ -15,8 +13,7 @@ const botMaster = process.env.BOT_MASTER;
 const prefix = config.prefix;
 const role = config.role;
 
-let guilds = {};
-
+let guilds = {}; 
 client.on('ready', function () {
   console.log(`Logged in as ${client.user.username}#${client.user.discriminator}`);
   clientUser = client.user;
@@ -48,13 +45,10 @@ client.on('message', function (message) {
       if (guilds[message.guild.id].queue.length > 0 || guilds[message.guild.id].isPlaying) {
         getID(args, function (id) {
           addToQueue(id, message);
-          youtubeInfo(id, function (err, videoinfo) {
-            if (err) {
-              throw new Error(err);
-            }
-            guilds[message.guild.id].queueNames.push(videoinfo.title);
-            addToPlayedTracks(message, videoinfo, message.author);
-            message.reply('the song: **' + videoinfo.title + '** has been added to the queue.');
+          getVideoInfo(id, function (videoInfo) {
+            guilds[message.guild.id].queueNames.push(videoInfo.videoDetails.title);
+            addToPlayedTracks(message, videoInfo, message.author);
+            message.reply('the song: **' + videoInfo.videoDetails.title + '** has been added to the queue.');
           });
         });
       } else {
@@ -62,13 +56,10 @@ client.on('message', function (message) {
         getID(args, function (id) {
           guilds[message.guild.id].queue.push(id);
           playMusic(id, message);
-          youtubeInfo(id, function (err, videoinfo) {
-            if (err) {
-              throw new Error(err);
-            }
-            guilds[message.guild.id].queueNames.push(videoinfo.title);
-            addToPlayedTracks(message, videoinfo, message.author);
-            message.reply('the song: **' + videoinfo.title + '** is now playing!');
+          getVideoInfo(id, function (videoInfo) {
+            guilds[message.guild.id].queueNames.push(videoInfo.videoDetails.title);
+            addToPlayedTracks(message, videoInfo, message.author);
+            message.reply('the song: **' + videoInfo.videoDetails.title + '** is now playing!');
           });
         });
       }
@@ -159,7 +150,7 @@ function searchVideo(query, callback) {
 
 function getID(str, callback) {
   if (isYoutube(str)) {
-    callback(getYoutubeID(str));
+    callback(ytdl.getURLVideoID(str));
   } else {
     searchVideo(str, function (id) {
       callback(id);
@@ -167,9 +158,13 @@ function getID(str, callback) {
   }
 }
 
+async function getVideoInfo(id, callback) {
+  callback(await ytdl.getInfo(id));
+}
+
 function addToQueue(strID, message) {
   if (isYoutube(strID)) {
-    guilds[message.guild.id].queue.push(getYoutubeID(strID));
+    guilds[message.guild.id].queue.push(ytdl.getURLVideoID(strID));
   } else {
     guilds[message.guild.id].queue.push(strID);
   }
@@ -210,8 +205,8 @@ function skipMusic(message) {
 
 function addToPlayedTracks(message, videoInfo, user){
   let trackInfo = {
-    title: videoInfo.title, 
-    url: videoInfo.url, 
+    title: videoInfo.videoDetails.title, 
+    url: videoInfo.videoDetails.video_url, 
     dateVal: Date.now(), 
     username: user.username
   };
