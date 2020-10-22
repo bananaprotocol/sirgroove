@@ -176,6 +176,7 @@ function playMusic(id, message) {
   guilds[message.guild.id].voiceChannel.join().then(function (connection) {
     stream = ytdl('https://www.youtube.com/watch?v=' + id, {
       filter: 'audioonly',
+      dlChunkSize: 0
     });
     guilds[message.guild.id].skipReq = 0;
     guilds[message.guild.id].skippers = [];
