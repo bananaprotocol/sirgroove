@@ -22,6 +22,6 @@
     "@discordjs/opus": "^0.3.2",
     "dotenv": "^8.2.0",
     "request": "^2.88.2",
-    "ytdl-core": "^3.4.2"
+    "ytdl-core": "^4.4.4"
   }
 }
