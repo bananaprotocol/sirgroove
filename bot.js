@@ -73,7 +73,7 @@ client.on('message', function (message) {
       guilds[message.guild.id].skippers.push(message.author.id);
       guilds[message.guild.id].skipReq++;
       if (guilds[message.guild.id].skipReq >=
-      Math.ceil((guilds[message.guild.id].voiceChannel.members.size - 1) / 2) || message.guild.member(message.author.id).roles.find(roles => roles.name === role)) {
+      Math.ceil((guilds[message.guild.id].voiceChannel.members.size - 1) / 2) || message.guild.member(message.author.id).roles.cache.find(roles => roles.name === role)) {
         skipMusic(message);
         message.reply('your skip request has been accepted. The current song will be skipped!');
       } else {
@@ -106,7 +106,7 @@ client.on('message', function (message) {
       return;
     }
 
-    if (message.guild.member(message.author.id).roles.find(roles => roles.name === role)) {
+    if (message.guild.member(message.author.id).roles.cache.find(roles => roles.name === role)) {
       message.reply('stopping the music...');
 
       guilds[message.guild.id].queue = [];
