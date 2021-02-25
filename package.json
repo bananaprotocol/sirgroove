@@ -18,10 +18,10 @@
   "author": "bananaprotocol",
   "license": "MIT",
   "dependencies": {
-    "discord.js": "^12.4.0",
     "@discordjs/opus": "^0.3.2",
+    "discord.js": "^12.4.0",
     "dotenv": "^8.2.0",
     "request": "^2.88.2",
-    "ytdl-core": "^4.4.4"
+    "ytdl-core": "^4.5.0"
   }
 }
