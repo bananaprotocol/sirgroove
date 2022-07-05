@@ -18,7 +18,7 @@
   "author": "bananaprotocol",
   "license": "MIT",
   "dependencies": {
-    "@discordjs/opus": "^0.3.2",
+    "@discordjs/opus": "^0.8.0",
     "discord.js": "^12.4.0",
     "dotenv": "^8.2.0",
     "request": "^2.88.2",
